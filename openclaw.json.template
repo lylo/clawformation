@@ -1,0 +1,25 @@
+{
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "anthropic/claude-sonnet-4-5-20250929"
+      },
+      "heartbeat": {
+        "every": "30m"
+      },
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8
+      }
+    }
+  },
+  "channels": {
+    "whatsapp": {
+      "dmPolicy": "allowlist",
+      "allowFrom": ["+447700900000"],
+      "groupPolicy": "disabled",
+      "mediaMaxMb": 50,
+      "debounceMs": 0
+    }
+  }
+}

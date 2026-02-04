@@ -1,0 +1,33 @@
+# Sensitive configuration
+openclaw.json
+.env
+
+# Credentials and identity
+credentials/
+identity/
+devices/
+agents/*/agent/
+
+# Runtime data
+workspace/
+cron/
+agents/*/sessions/
+update-check.json
+canvas/
+
+# Backups
+*.backup
+*.backup-*
+*.sedbackup
+*.bak
+*.bak.*
+
+# Logs
+*.log
+
+# Docker
+docker-compose.yml.backup-*
+Dockerfile.skills.backup-*
+browser/openclaw/user-data
+chromium/Crash Reports
+media
