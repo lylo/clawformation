@@ -111,28 +111,34 @@ nano /root/.openclaw/openclaw.json
 
 **Add Telegram configuration:**
 
-Find the `"channels"` section and add/modify:
+Telegram needs TWO sections - `channels` for config and `plugins.entries` to enable:
 
 ```json
 {
   "channels": {
     "telegram": {
       "enabled": true,
-      "token": "7123456789:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw",
+      "botToken": "7123456789:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw",
       "dmPolicy": "allowlist",
-      "allowFrom": [123456789],
-      "groupPolicy": "disabled"
-    },
-    "whatsapp": {
-      "enabled": false
+      "allowFrom": ["123456789"]
+    }
+  },
+  "plugins": {
+    "entries": {
+      "telegram": {
+        "enabled": true
+      },
+      "whatsapp": {
+        "enabled": false
+      }
     }
   }
 }
 ```
 
 **Replace:**
-- `"token"` - Your bot token from @BotFather
-- `123456789` - Your Telegram user ID (no quotes, it's a number)
+- `"botToken"` - Your bot token from @BotFather
+- `"123456789"` - Your Telegram user ID as a string
 
 **Save and exit:** `Ctrl+X`, `Y`, `Enter`
 
@@ -202,10 +208,14 @@ You should see:
 
 If everything works with Telegram, you can disable WhatsApp:
 
-**Already done in Step 4:**
+**Already done in Step 4 - in the plugins section:**
 ```json
-"whatsapp": {
-  "enabled": false
+"plugins": {
+  "entries": {
+    "whatsapp": {
+      "enabled": false
+    }
+  }
 }
 ```
 
@@ -213,13 +223,13 @@ If everything works with Telegram, you can disable WhatsApp:
 ```json
 {
   "channels": {
-    "telegram": {
-      "enabled": true,
-      ...
-    },
-    "whatsapp": {
-      "enabled": true,
-      ...
+    "telegram": { ... },
+    "whatsapp": { ... }
+  },
+  "plugins": {
+    "entries": {
+      "telegram": { "enabled": true },
+      "whatsapp": { "enabled": true }
     }
   }
 }
@@ -245,14 +255,20 @@ If everything works with Telegram, you can disable WhatsApp:
   "channels": {
     "telegram": {
       "enabled": true,
-      "token": "7123456789:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw",
+      "botToken": "7123456789:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw",
       "dmPolicy": "allowlist",
-      "allowFrom": [123456789],
-      "groupPolicy": "disabled",
-      "mediaMaxMb": 50
-    },
-    "whatsapp": {
-      "enabled": false
+      "allowFrom": ["123456789"],
+      "streamMode": "partial"
+    }
+  },
+  "plugins": {
+    "entries": {
+      "telegram": {
+        "enabled": true
+      },
+      "whatsapp": {
+        "enabled": false
+      }
     }
   },
   "gateway": {
@@ -367,8 +383,8 @@ Replace `<TOKEN>` with your bot token. Should return bot info.
   "channels": {
     "telegram": {
       "groupPolicy": "allowlist",
-      "allowFrom": [123456789],  // Your user ID
-      "allowGroups": [-987654321]  // Group ID (negative number)
+      "allowFrom": ["123456789"],
+      "allowGroups": ["-987654321"]
     }
   }
 }
