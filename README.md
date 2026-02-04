@@ -161,9 +161,37 @@ docker compose run --rm openclaw-cli
 ## Maintenance
 
 ### View Logs
+
+**Docker container logs:**
 ```bash
 cd /root/openclaw
+
+# Follow logs in real-time (Ctrl+C to exit)
 docker compose logs -f openclaw-gateway
+
+# View all logs
+docker compose logs openclaw-gateway
+
+# Last 50 lines
+docker compose logs --tail=50 openclaw-gateway
+
+# Last 100 lines and follow
+docker compose logs --tail=100 -f openclaw-gateway
+
+# All services
+docker compose logs -f
+```
+
+**OpenClaw internal logs:**
+```bash
+# Agent's daily memory logs
+cat /root/.openclaw/workspace/memory/$(date +%Y-%m-%d).md
+
+# Session history
+cat /root/.openclaw/agents/main/sessions/sessions.json
+
+# List all memory logs
+ls -lh /root/.openclaw/workspace/memory/
 ```
 
 ### Restart Services
