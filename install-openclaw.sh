@@ -319,6 +319,9 @@ RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.co
 USER root
 RUN ln -sf /home/linuxbrew/.linuxbrew/bin/brew /usr/local/bin/brew
 
+# Create openclaw symlink for easy CLI access
+RUN ln -sf /app/openclaw.mjs /usr/local/bin/openclaw && chmod +x /usr/local/bin/openclaw
+
 # Ensure node owns everything in its home
 RUN chown -R 1000:1000 /home/node
 
