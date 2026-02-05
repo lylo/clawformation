@@ -317,7 +317,8 @@ RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.co
 
 # Shims so skill installers always find brew/go even with sanitised PATH
 USER root
-RUN ln -sf /home/linuxbrew/.linuxbrew/bin/brew /usr/local/bin/brew
+RUN ln -sf /home/linuxbrew/.linuxbrew/bin/brew /usr/local/bin/brew \
+    && ln -sf /home/linuxbrew/.linuxbrew/Homebrew/Library /home/linuxbrew/.linuxbrew/Library
 
 # Create openclaw symlink for easy CLI access
 RUN ln -sf /app/openclaw.mjs /usr/local/bin/openclaw && chmod +x /usr/local/bin/openclaw
