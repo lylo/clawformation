@@ -166,6 +166,8 @@ services:
     image: ${OPENCLAW_IMAGE}
     build: .
     restart: unless-stopped
+    init: true
+    shm_size: '1gb'
     env_file:
       - .env
     environment:
@@ -192,6 +194,7 @@ services:
 
   openclaw-cli:
     image: ${OPENCLAW_IMAGE}
+    init: true
     env_file:
       - .env
     environment:

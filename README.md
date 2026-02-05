@@ -245,12 +245,29 @@ docker compose logs openclaw-gateway
 Check for config errors in `/root/.openclaw/openclaw.json`.
 
 ### Browser tool not working
+
+**Check Chromium is installed:**
 ```bash
 docker compose exec openclaw-gateway which chromium
 docker compose exec openclaw-gateway npx playwright --version
 ```
-
 Should show `/usr/bin/chromium` and Playwright version.
+
+**"Can't reach the OpenClaw browser control service" / timeout:**
+
+This usually means Chromium is crashing on launch due to stale lock files from a previous unclean shutdown. Remove them:
+```bash
+docker compose exec openclaw-gateway rm -f \
+  /home/node/.openclaw/browser/openclaw/user-data/SingletonLock \
+  /home/node/.openclaw/browser/openclaw/user-data/SingletonSocket \
+  /home/node/.openclaw/browser/openclaw/user-data/SingletonCookie \
+  /home/node/.openclaw/browser/chrome/user-data/SingletonLock \
+  /home/node/.openclaw/browser/chrome/user-data/SingletonSocket \
+  /home/node/.openclaw/browser/chrome/user-data/SingletonCookie
+docker compose restart openclaw-gateway
+```
+
+To prevent this permanently, ensure your `docker-compose.yml` has `init: true` and `shm_size: '1gb'` on the gateway service. The `init` flag adds a proper init process (tini) that reaps zombie Chromium processes, and `shm_size` gives Chromium enough shared memory.
 
 ### WhatsApp disconnected
 Re-run onboarding:
