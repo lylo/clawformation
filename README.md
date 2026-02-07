@@ -76,6 +76,43 @@ Config files are created at `/root/.openclaw/`:
 
 The install script **preserves existing configs** - safe to re-run for updates.
 
+### Model Configuration
+
+The agent can only use models listed in the `models` allowlist in `openclaw.json`. The `primary` field sets which model is used by default; any model used by cron jobs or channel overrides must also be in the allowlist.
+
+```json
+{
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "anthropic/claude-haiku-4-5"
+      },
+      "models": {
+        "anthropic/claude-haiku-4-5": {},
+        "anthropic/claude-sonnet-4-5": {},
+        "anthropic/claude-opus-4-6": {}
+      }
+    }
+  }
+}
+```
+
+**Available models:**
+
+| Model | Use case | Relative cost |
+|---|---|---|
+| `anthropic/claude-haiku-4-5` | Fast responses, low cost | $ |
+| `anthropic/claude-sonnet-4-5` | Good balance of cost and capability | $$ |
+| `anthropic/claude-opus-4-6` | Complex reasoning, highest quality | $$$ |
+
+To add a model, add it to the `models` object with an empty `{}` value. To change the default, update `primary`. Restart the gateway after any changes:
+
+```bash
+docker compose restart openclaw-gateway
+```
+
+Models not in the allowlist will fail with `"model not allowed"`. You can also override the model per cron job (in `cron/jobs.json`) or per channel.
+
 ## What Gets Installed
 
 ### On the VPS

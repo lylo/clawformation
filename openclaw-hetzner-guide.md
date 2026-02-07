@@ -165,13 +165,31 @@ If you picked Anthropic during onboarding, this is already done. To verify or ch
     "defaults": {
       "model": {
         "primary": "anthropic/claude-sonnet-4-5-20250929"
+      },
+      "models": {
+        "anthropic/claude-haiku-4-5": {},
+        "anthropic/claude-sonnet-4-5": {},
+        "anthropic/claude-opus-4-6": {}
       }
     }
   }
 }
 ```
 
-You can use any Claude model. Sonnet is a good balance of cost and capability. For heavier reasoning, you could use `anthropic/claude-opus-4-5-20251101` but it costs more.
+**Two things to configure:**
+
+1. **`primary`** — the default model used for conversations and heartbeats.
+2. **`models`** — the allowlist of all models the agent is permitted to use. Any model referenced by cron jobs, channel overrides, or subagents must be listed here or it will fail with `"model not allowed"`.
+
+**Available models:**
+
+| Model | Best for | Relative cost |
+|---|---|---|
+| `anthropic/claude-haiku-4-5` | Fast responses, simple tasks, low cost | $ |
+| `anthropic/claude-sonnet-4-5` | Good balance of cost and capability | $$ |
+| `anthropic/claude-opus-4-6` | Complex reasoning, highest quality | $$$ |
+
+To add a model, add its key to the `models` object with an empty `{}` value. To change the default, update `primary`.
 
 After editing, restart the gateway:
 

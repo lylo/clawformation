@@ -81,6 +81,10 @@ Runtime configuration. Key sections:
 - **Config**: JSON with comments explaining each section
 - **Documentation**: Markdown, clear structure, code examples
 
+### Git & PRs
+- **No Co-Authored-By lines** or any Claude/AI advertising in commits or PRs
+- Commit messages should be concise and describe the change, nothing more
+
 ### Conventions
 - **Secrets**: Generate with `openssl rand -hex 32`, never hardcode
 - **Paths**:
