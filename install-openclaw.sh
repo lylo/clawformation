@@ -111,18 +111,15 @@ chown -R 1000:1000 "$OPENCLAW_CONFIG"
 log "Config dir: $OPENCLAW_CONFIG"
 log "Workspace:  $OPENCLAW_CONFIG/workspace"
 
-# --- Step 5: Generate secrets ---
-step "Generating secrets"
-GATEWAY_TOKEN=$(openssl rand -hex 32)
-KEYRING_PASSWORD=$(openssl rand -hex 32)
-log "Gateway token generated (saved to .env)"
-
-# --- Step 6: Write .env ---
+# --- Step 5: Generate secrets and write .env ---
 step "Checking .env"
 if [ -f "$OPENCLAW_DIR/.env" ]; then
     log ".env already exists — preserving existing secrets"
     warn "To regenerate secrets, manually delete $OPENCLAW_DIR/.env and re-run"
+    GATEWAY_TOKEN=$(grep OPENCLAW_GATEWAY_TOKEN "$OPENCLAW_DIR/.env" | cut -d= -f2)
 else
+    GATEWAY_TOKEN=$(openssl rand -hex 32)
+    KEYRING_PASSWORD=$(openssl rand -hex 32)
     log "Creating .env"
     cat > "$OPENCLAW_DIR/.env" <<EOF
 OPENCLAW_IMAGE=openclaw:latest
@@ -253,24 +250,23 @@ echo -e "  ${GREEN}Logs:${NC}           cd $OPENCLAW_DIR && docker compose logs 
 echo -e "  ${GREEN}Dashboard:${NC}      ssh -L 18789:127.0.0.1:18789 root@THIS_VPS_IP"
 echo -e "                  then open http://localhost:18789"
 echo ""
-echo -e "${CYAN}━━━ NEXT STEPS (interactive — must be done manually) ━━━${NC}"
-echo ""
-echo "  1. Run the onboarding wizard to pair WhatsApp:"
-echo ""
-echo -e "     ${YELLOW}cd $OPENCLAW_DIR && docker compose run --rm openclaw-cli onboard${NC}"
-echo ""
-echo "     → Select 'Anthropic API Key' and paste your key"
-echo "     → Select 'WhatsApp' as the channel"
-echo "     → Scan the QR code with your phone"
-echo "     → Accept default skills"
-echo ""
-echo "  2. Once paired, send a WhatsApp message to yourself to test."
-echo ""
-echo "  3. (Optional) Seed it with self-learning:"
-echo "     Send: 'Please create a skill that summarises any URL I share with you'"
-echo ""
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo ""
-echo -e "  ${RED}IMPORTANT: Save your gateway token somewhere safe.${NC}"
-echo -e "  ${RED}           Change YOUR_PHONE_NUMBER in openclaw.json if you used the default.${NC}"
-echo ""
+
+# Show next steps only on first install (no existing auth profiles)
+if [ ! -f "$OPENCLAW_CONFIG/agents/main/agent/auth-profiles.json" ]; then
+    echo -e "${CYAN}━━━ NEXT STEPS (interactive — must be done manually) ━━━${NC}"
+    echo ""
+    echo "  1. Run the onboarding wizard:"
+    echo ""
+    echo -e "     ${YELLOW}cd $OPENCLAW_DIR && docker compose run --rm openclaw-cli onboard${NC}"
+    echo ""
+    echo "     → Add your Anthropic API key"
+    echo "     → Connect your messaging channel"
+    echo "     → Accept default skills"
+    echo ""
+    echo "  2. Send a message to your bot to test."
+    echo ""
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo -e "  ${RED}IMPORTANT: Save your gateway token somewhere safe.${NC}"
+    echo ""
+fi
