@@ -54,10 +54,16 @@ RUN ln -sf /home/linuxbrew/.linuxbrew/bin/brew /usr/local/bin/brew \
 # Create openclaw symlink for easy CLI access
 RUN ln -sf /app/openclaw.mjs /usr/local/bin/openclaw && chmod +x /usr/local/bin/openclaw
 
+# Entrypoint wrapper: clean stale Chromium lock files before starting
+RUN printf '#!/bin/sh\nrm -f /home/node/.openclaw/browser/*/user-data/Singleton* 2>/dev/null\nexec "$@"\n' \
+    > /usr/local/bin/docker-entrypoint.sh \
+    && chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Ensure node owns everything in its home
 RUN chown -R 1000:1000 /home/node
 
 USER node
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 ENV GOPATH=/home/node/go
