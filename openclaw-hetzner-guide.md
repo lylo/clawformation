@@ -1,12 +1,12 @@
 # OpenClaw on a Hetzner VPS — Simple Setup Guide
 
-> **Goal:** A 24/7 personal AI assistant you message via WhatsApp or Signal, powered by Claude, that teaches itself new skills over time. Cost: ~€4–6/month for the VPS + Anthropic API usage.
+> **Goal:** A 24/7 personal AI assistant you message via Telegram or WhatsApp, powered by Claude, that teaches itself new skills over time. Cost: ~€4-6/month for the VPS + Anthropic API usage.
 
 ---
 
 ## What You're Building
 
-OpenClaw is an open-source AI agent that runs on your own server. You message it through WhatsApp or Signal like a normal contact, and it replies using Claude (via the Anthropic API). It has persistent memory, can run shell commands, browse the web, create files, and — critically for your "self-learning" goal — it can **write its own skills**: small code modules that extend what it can do, triggered simply by you asking it to do something new.
+OpenClaw is an open-source AI agent that runs on your own server. You message it through Telegram or WhatsApp like a normal contact, and it replies using Claude (via the Anthropic API). It has persistent memory, can run shell commands, browse the web, create files, and — critically for your "self-learning" goal — it can **write its own skills**: small code modules that extend what it can do, triggered simply by you asking it to do something new.
 
 ---
 
@@ -14,7 +14,7 @@ OpenClaw is an open-source AI agent that runs on your own server. You message it
 
 - A **Hetzner Cloud account** (hetzner.com)
 - An **Anthropic API key** (console.anthropic.com → API Keys)
-- **WhatsApp** on your phone (to scan a QR code for pairing) and/or a **spare phone number** for Signal
+- **Telegram** (create a bot via @BotFather) and/or **WhatsApp** on your phone
 - SSH on your laptop (Terminal on Mac/Linux, or PuTTY/WSL on Windows)
 - ~30 minutes
 
@@ -54,61 +54,83 @@ docker compose version
 
 ---
 
-## Part 3: Clone and Set Up OpenClaw
+## Part 3: Install OpenClaw
+
+Clone the deployment repo and run the installer:
 
 ```bash
-git clone https://github.com/openclaw/openclaw.git
-cd openclaw
+git clone https://github.com/lylo/bunkbot.git /root/bunkbot
+bash /root/bunkbot/install-openclaw.sh
 ```
 
-### Create persistent directories
+The installer will:
+1. Clone the OpenClaw source code to `/root/openclaw/`
+2. Create persistent directories at `/root/.openclaw/`
+3. Generate secure tokens
+4. Prompt you to choose a messaging channel (Telegram, WhatsApp, or both)
+5. Build Docker images (base + extended with browser automation)
+6. Start the gateway
 
-Docker containers are ephemeral — everything inside them vanishes on restart. These host directories store OpenClaw's config, memory, and workspace permanently:
+**When prompted for channel setup:**
 
-```bash
-mkdir -p /root/.openclaw /root/.openclaw/workspace
-chown -R 1000:1000 /root/.openclaw /root/.openclaw/workspace
-```
-
-### Run the setup script
-
-```bash
-./docker-setup.sh
-```
-
-This interactive wizard will:
-- Build the Docker image
-- Walk you through onboarding (gateway type, model provider, channels, skills)
-- Generate a gateway token
-- Start the gateway via Docker Compose
-
-**When prompted during the wizard:**
-
-| Prompt | What to pick |
+| Channel | What you'll need |
 |---|---|
-| Gateway location | **Local** |
-| Model provider | **Anthropic API Key**, then paste your key |
-| Channel | **WhatsApp** (easiest to start) |
-| Skills | Say **Yes** and accept the defaults — you can always add more later |
-| Hooks | Accept defaults or skip |
+| **Telegram** | Bot token (from @BotFather) and your Telegram user ID |
+| **WhatsApp** | Your phone number in international format |
 
 ### Save your gateway token
 
-The setup prints a token at the end. You can also retrieve it later:
+The installer prints a token at the end. You can also retrieve it later:
 
 ```bash
-cat /root/.openclaw/.env | grep OPENCLAW_GATEWAY_TOKEN
+grep OPENCLAW_GATEWAY_TOKEN /root/openclaw/.env
 ```
+
+### Run onboarding
+
+```bash
+cd /root/openclaw
+docker compose run --rm openclaw-cli onboard
+```
+
+This interactive wizard will:
+- Add your Anthropic API key
+- Connect your messaging channel
+- Install default skills
 
 ---
 
-## Part 4: Connect WhatsApp
+## Part 4: Connect a Messaging Channel
+
+The installer prompts you to choose Telegram, WhatsApp, or both. The config is written to `/root/.openclaw/openclaw.json`.
+
+### Telegram (recommended)
+
+1. Create a bot via [@BotFather](https://t.me/BotFather) on Telegram
+2. Enter the bot token and your Telegram user ID when prompted
+3. Send a message to your bot to test
+
+The config uses an allowlist so only you can talk to it:
+
+```json
+{
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "dmPolicy": "allowlist",
+      "botToken": "YOUR_BOT_TOKEN",
+      "allowFrom": ["YOUR_TELEGRAM_USER_ID"],
+      "groupPolicy": "allowlist"
+    }
+  }
+}
+```
+
+See `telegram-setup.md` for detailed Telegram setup instructions.
+
+### WhatsApp
 
 During onboarding, you'll see a **QR code** in the terminal. Open WhatsApp on your phone → Settings → Linked Devices → Link a Device → scan the QR code.
-
-Once paired, your OpenClaw instance appears as a linked device. You can now message yourself (or have someone message the number) and OpenClaw will reply.
-
-**Important:** Set a DM policy so only you can talk to it. In your config (`/root/.openclaw/openclaw.json`), make sure:
 
 ```json
 {
@@ -122,36 +144,7 @@ Once paired, your OpenClaw instance appears as a linked device. You can now mess
 }
 ```
 
-Replace `+YOUR_PHONE_NUMBER` with your number in international format (e.g. `+447700900000`).
-
----
-
-## Part 4b (Alternative): Connect Signal
-
-Signal requires `signal-cli`, which needs Java. This adds more moving parts, so WhatsApp is easier for a first test. If you still want Signal:
-
-1. You need a **separate phone number** for the bot (Signal won't let the bot reply to itself on your own number).
-2. Install Java and signal-cli on the VPS (or bake them into the Docker image).
-3. Register the bot number with signal-cli.
-4. Configure OpenClaw:
-
-```json
-{
-  "channels": {
-    "signal": {
-      "enabled": true,
-      "account": "+BOT_PHONE_NUMBER",
-      "cliPath": "signal-cli",
-      "dmPolicy": "allowlist",
-      "allowFrom": ["+YOUR_PHONE_NUMBER"]
-    }
-  }
-}
-```
-
-The official docs cover this in detail: https://docs.openclaw.ai/channels/signal
-
-**Recommendation:** Start with WhatsApp. You can add Signal later — OpenClaw supports multiple channels simultaneously.
+OpenClaw supports multiple channels simultaneously — you can add more later.
 
 ---
 
@@ -164,7 +157,7 @@ If you picked Anthropic during onboarding, this is already done. To verify or ch
   "agents": {
     "defaults": {
       "model": {
-        "primary": "anthropic/claude-sonnet-4-5-20250929"
+        "primary": "anthropic/claude-haiku-4-5"
       },
       "models": {
         "anthropic/claude-haiku-4-5": {},
@@ -237,7 +230,7 @@ This wakes the bot every 30 minutes to check if there's anything it should do.
 
 ### Seed it with your first conversation
 
-Once everything is running, open WhatsApp and send your first messages to prime it. Here's a suggested sequence:
+Once everything is running, send your first messages to prime it. Here's a suggested sequence:
 
 > **You:** Hi! I'd like you to be my personal assistant. Learn my preferences over time and build new skills when I ask you to do things you can't do yet.
 
@@ -279,24 +272,27 @@ Then open http://localhost:18789 in your browser and paste the gateway token.
 
 OpenClaw moves fast. To update:
 
+**Update OpenClaw software:**
 ```bash
-cd /root/openclaw
-git pull
-docker compose build
-docker compose up -d
+cd /root/openclaw && git pull
+docker compose build && docker compose up -d
 ```
 
-Or if you installed via npm inside Docker, the `docker-setup.sh` script handles rebuilds.
+**Update deployment config (Dockerfile, docker-compose, etc.):**
+```bash
+cd /root/bunkbot && git pull
+bash /root/bunkbot/install-openclaw.sh
+```
 
 ---
 
 ## Security Reminders
 
 - **Never run OpenClaw on a machine with sensitive personal data.** A VPS is ideal because the blast radius is contained.
-- **Keep `dmPolicy: "allowlist"`** so only your number can talk to it.
+- **Keep `dmPolicy: "allowlist"`** so only you can talk to it.
 - **Don't expose port 18789 publicly** without a firewall and token auth. Use SSH tunnels.
 - **Rotate your gateway token** if you suspect it's been leaked.
-- **Monitor API costs.** The heartbeat and skill-building consume API tokens. Start with Sonnet to keep costs reasonable, and check your Anthropic dashboard regularly.
+- **Monitor API costs.** The heartbeat and skill-building consume API tokens. Start with Haiku to keep costs low, and check your Anthropic dashboard regularly.
 
 ---
 
@@ -311,7 +307,8 @@ Or if you installed via npm inside Docker, the `docker-setup.sh` script handles 
 | Check health | `curl http://127.0.0.1:18789/health` |
 | List skills | `docker compose exec openclaw-gateway openclaw skills list` |
 | Edit config | `nano /root/.openclaw/openclaw.json` (then restart) |
-| Update | `git pull && docker compose build && docker compose up -d` |
+| Update OpenClaw | `cd /root/openclaw && git pull && docker compose build && docker compose up -d` |
+| Update deployment | `cd /root/bunkbot && git pull && bash /root/bunkbot/install-openclaw.sh` |
 | Get dashboard URL | `docker compose run --rm openclaw-cli dashboard --no-open` |
 
 ---

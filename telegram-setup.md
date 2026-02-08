@@ -244,7 +244,7 @@ If everything works with Telegram, you can disable WhatsApp:
   "agents": {
     "defaults": {
       "model": {
-        "primary": "anthropic/claude-sonnet-4-5-20250929"
+        "primary": "anthropic/claude-haiku-4-5"
       },
       "heartbeat": {
         "every": "30m"

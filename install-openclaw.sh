@@ -36,9 +36,10 @@ OPENCLAW_DIR="/root/openclaw"
 OPENCLAW_CONFIG="/root/.openclaw"
 OPENCLAW_PORT="18789"
 HEARTBEAT_INTERVAL="30m"
-# Your phone number in international format — CHANGE THIS
-YOUR_PHONE_NUMBER="${YOUR_PHONE_NUMBER:-+447700900000}"
-# Primary model — change if you prefer a different Claude model
+# Read model from existing config if available
+if [ -f "$OPENCLAW_CONFIG/openclaw.json" ]; then
+    PRIMARY_MODEL="${PRIMARY_MODEL:-$(jq -r '.agents.defaults.model.primary // empty' "$OPENCLAW_CONFIG/openclaw.json" 2>/dev/null)}"
+fi
 PRIMARY_MODEL="${PRIMARY_MODEL:-anthropic/claude-haiku-4-5}"
 # Directory where this script (and its companion files) lives
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -65,12 +66,8 @@ if ! grep -qi "ubuntu\|debian" /etc/os-release 2>/dev/null; then
     warn "This script is designed for Ubuntu/Debian. Other distros may need adjustments."
 fi
 
-if [ "$YOUR_PHONE_NUMBER" = "+447700900000" ]; then
-    warn "You haven't set YOUR_PHONE_NUMBER. The default placeholder will be used."
-    warn "You can fix this later in /root/.openclaw/openclaw.json"
-    echo ""
-    read -rp "Continue anyway? (y/N) " confirm
-    [[ "$confirm" =~ ^[Yy] ]] || exit 0
+if [ -f "$OPENCLAW_CONFIG/openclaw.json" ]; then
+    log "Existing openclaw.json found — channel config will be preserved"
 fi
 
 # --- Step 1: System update ---
@@ -156,17 +153,52 @@ if [ -f "$OPENCLAW_CONFIG/openclaw.json" ]; then
 else
     log "Creating initial openclaw.json from template"
     cp "$SCRIPT_DIR/openclaw.json.template" "$OPENCLAW_CONFIG/openclaw.json"
-    # Substitute user-specific values
-    jq --arg model "$PRIMARY_MODEL" \
-       --arg phone "$YOUR_PHONE_NUMBER" \
-       --arg heartbeat "$HEARTBEAT_INTERVAL" \
-       '.agents.defaults.model.primary = $model
-        | .agents.defaults.heartbeat.every = $heartbeat
-        | .channels.whatsapp.allowFrom = [$phone]' \
+
+    # --- Channel setup ---
+    echo ""
+    echo -e "${CYAN}Which messaging channel(s) do you want to enable?${NC}"
+    echo "  1) Telegram"
+    echo "  2) WhatsApp"
+    echo "  3) Both"
+    echo ""
+    read -rp "Choose [1/2/3]: " channel_choice
+
+    ENABLE_TELEGRAM=false
+    ENABLE_WHATSAPP=false
+    case "$channel_choice" in
+        1) ENABLE_TELEGRAM=true ;;
+        2) ENABLE_WHATSAPP=true ;;
+        3) ENABLE_TELEGRAM=true; ENABLE_WHATSAPP=true ;;
+        *) warn "Invalid choice — defaulting to Telegram"; ENABLE_TELEGRAM=true ;;
+    esac
+
+    JQ_FILTER=".agents.defaults.model.primary = \$model | .agents.defaults.heartbeat.every = \$heartbeat"
+    JQ_ARGS=(--arg model "$PRIMARY_MODEL" --arg heartbeat "$HEARTBEAT_INTERVAL")
+
+    if [ "$ENABLE_TELEGRAM" = true ]; then
+        echo ""
+        read -rp "Telegram bot token (from @BotFather): " tg_token
+        read -rp "Your Telegram user ID: " tg_user_id
+        JQ_FILTER="$JQ_FILTER | .channels.telegram.botToken = \$tg_token | .channels.telegram.allowFrom = [\$tg_user_id] | .plugins.entries.telegram.enabled = true"
+        JQ_ARGS+=(--arg tg_token "$tg_token" --arg tg_user_id "$tg_user_id")
+    else
+        JQ_FILTER="$JQ_FILTER | .plugins.entries.telegram.enabled = false | del(.channels.telegram)"
+    fi
+
+    if [ "$ENABLE_WHATSAPP" = true ]; then
+        echo ""
+        read -rp "Your phone number (international format, e.g. +44...): " phone_number
+        JQ_FILTER="$JQ_FILTER | .channels.whatsapp.allowFrom = [\$phone] | .plugins.entries.whatsapp.enabled = true"
+        JQ_ARGS+=(--arg phone "$phone_number")
+    else
+        JQ_FILTER="$JQ_FILTER | .plugins.entries.whatsapp.enabled = false | del(.channels.whatsapp)"
+    fi
+
+    jq "${JQ_ARGS[@]}" "$JQ_FILTER" \
        "$OPENCLAW_CONFIG/openclaw.json" > "$OPENCLAW_CONFIG/openclaw.json.tmp" \
     && mv "$OPENCLAW_CONFIG/openclaw.json.tmp" "$OPENCLAW_CONFIG/openclaw.json"
     chown 1000:1000 "$OPENCLAW_CONFIG/openclaw.json"
-    log "openclaw.json written with allowlist for $YOUR_PHONE_NUMBER"
+    log "openclaw.json written"
 fi
 
 # --- Step 9: Build stock image first, then extend with skill support ---

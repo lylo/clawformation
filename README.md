@@ -10,9 +10,9 @@ This repository contains deployment automation and configuration for OpenClaw - 
 - ✅ Automated Docker setup with browser automation (Chromium + Playwright)
 - ✅ Configuration templates
 - ✅ Safe re-run capability (preserves existing configs)
-- ✅ WhatsApp integration setup
+- ✅ Multi-channel support (Telegram, WhatsApp)
 
-**OpenClaw** is an autonomous AI agent platform that runs 24/7, with multi-channel support (WhatsApp, Discord, CLI), skill-based extensibility, and persistent memory.
+**OpenClaw** is an autonomous AI agent platform that runs 24/7, with multi-channel support (Telegram, WhatsApp, Discord, CLI), skill-based extensibility, and persistent memory.
 
 ## Quick Start
 
@@ -36,7 +36,7 @@ bash install-openclaw.sh
    - Build Docker images
    - Start the gateway
 
-4. **Run onboarding to pair WhatsApp:**
+4. **Run onboarding:**
 
 ```bash
 cd /root/openclaw
@@ -44,23 +44,22 @@ docker compose run --rm openclaw-cli onboard
 ```
 
    - Add your Anthropic API key
-   - Scan QR code to pair WhatsApp
+   - Connect your messaging channel (Telegram or WhatsApp)
    - Accept default skills
 
 5. **Test it:**
 
-Send a WhatsApp message to yourself!
+Send a message to your bot!
 
 ## Configuration
 
 ### Before First Install
 
-Edit these variables at the top of `install-openclaw.sh`:
+The installer will prompt you to choose a messaging channel (Telegram, WhatsApp, or both) and enter the relevant credentials. No need to edit the script.
 
+To override the default model, set it as an environment variable:
 ```bash
-YOUR_PHONE_NUMBER="+447700900000"  # Change to your number
-PRIMARY_MODEL="anthropic/claude-sonnet-4-5-20250929"
-HEARTBEAT_INTERVAL="30m"
+PRIMARY_MODEL="anthropic/claude-sonnet-4-5" bash /root/bunkbot/install-openclaw.sh
 ```
 
 ### After Installation
@@ -179,8 +178,8 @@ Agent can learn new skills when you ask!
 
 ## Accessing Your Agent
 
-### WhatsApp
-Just message yourself after pairing.
+### Messaging
+Send a message to your bot via Telegram or WhatsApp (whichever you configured).
 
 ### SSH Tunnel (for Dashboard)
 ```bash
@@ -261,16 +260,21 @@ bunkbot/
 ├── README.md                      # This file
 ├── AGENTS.md                      # Project context for AI agents
 ├── install-openclaw.sh            # Main installer
-├── openclaw.json.template         # Config template (example)
+├── Dockerfile.skills              # Extended Docker image
+├── docker-compose.yml             # Docker Compose services
+├── openclaw.json.template         # Config template (Telegram + WhatsApp)
+├── sync.sh                        # Pull server config backups
+├── secure-vps.sh                  # VPS hardening script
 ├── openclaw-hetzner-guide.md      # Detailed setup guide
-└── .gitignore                     # Excludes secrets and runtime data
+├── telegram-setup.md              # Telegram channel guide
+├── skills-management.md           # Skills system reference
+├── tailscale-setup.md             # Tailscale VPN setup
+└── .gitignore
 ```
 
-**Not committed:**
-- `openclaw.json` (contains phone numbers)
-- `credentials/` (WhatsApp session keys)
-- `agents/*/agent/` (API keys)
-- `workspace/` (agent memory and state)
+**Not committed (gitignored):**
+- `.openclaw/` — server config backup (via `sync.sh`)
+- `openclaw.json` — live config (contains secrets)
 
 ## Troubleshooting
 
@@ -306,7 +310,7 @@ docker compose restart openclaw-gateway
 
 To prevent this permanently, ensure your `docker-compose.yml` has `init: true` and `shm_size: '1gb'` on the gateway service. The `init` flag adds a proper init process (tini) that reaps zombie Chromium processes, and `shm_size` gives Chromium enough shared memory.
 
-### WhatsApp disconnected
+### Channel disconnected
 Re-run onboarding:
 ```bash
 docker compose run --rm openclaw-cli onboard
@@ -335,9 +339,9 @@ OpenClaw 2026.2.3+ requires `heartbeat` under `agents.defaults`, not at root:
 │  │  Docker Container                  │     │
 │  │                                    │     │
 │  │  OpenClaw Gateway :18789           │     │
-│  │  ├─ Claude Sonnet 4.5              │     │
+│  │  ├─ Claude Haiku 4.5               │     │
 │  │  ├─ Browser Tool (Chromium)        │     │
-│  │  ├─ WhatsApp Plugin                │     │
+│  │  ├─ Telegram / WhatsApp Plugin     │     │
 │  │  └─ Skills                         │     │
 │  │                                    │     │
 │  │  Volume: /root/.openclaw           │     │
@@ -346,14 +350,14 @@ OpenClaw 2026.2.3+ requires `heartbeat` under `agents.defaults`, not at root:
 │  └────────────────────────────────────┘     │
 └─────────────────────────────────────────────┘
            ↓                    ↓
-    WhatsApp Messages      REST API
+      Telegram/WhatsApp      REST API
 ```
 
 ## Security Notes
 
 - Gateway only binds to `127.0.0.1` (use SSH tunnel for remote access)
 - Secrets generated with `openssl rand -hex 32`
-- WhatsApp allowlist prevents unauthorized access
+- Channel allowlist prevents unauthorized access
 - All agent runtime as non-root user (node:1000)
 - Credentials stored encrypted in Docker volumes
 
@@ -369,6 +373,5 @@ This deployment configuration is provided as-is. OpenClaw itself is licensed sep
 
 ---
 
-**Last Updated**: 2026-02-04
-**OpenClaw Version**: 2026.2.3
+**Last Updated**: 2026-02-08
 **Tested On**: Hetzner Ubuntu 24.04 VPS

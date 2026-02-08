@@ -2,7 +2,7 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "anthropic/claude-sonnet-4-5-20250929"
+        "primary": "anthropic/claude-haiku-4-5"
       },
       "models": {
         "anthropic/claude-haiku-4-5": {},
@@ -19,12 +19,30 @@
     }
   },
   "channels": {
+    "telegram": {
+      "enabled": true,
+      "dmPolicy": "allowlist",
+      "botToken": "YOUR_BOT_TOKEN",
+      "allowFrom": ["YOUR_TELEGRAM_USER_ID"],
+      "groupPolicy": "allowlist",
+      "streamMode": "partial"
+    },
     "whatsapp": {
       "dmPolicy": "allowlist",
       "allowFrom": ["+447700900000"],
       "groupPolicy": "disabled",
       "mediaMaxMb": 50,
       "debounceMs": 0
+    }
+  },
+  "plugins": {
+    "entries": {
+      "telegram": {
+        "enabled": true
+      },
+      "whatsapp": {
+        "enabled": false
+      }
     }
   }
 }
