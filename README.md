@@ -181,11 +181,13 @@ Agent can learn new skills when you ask!
 ### Messaging
 Send a message to your bot via Telegram or WhatsApp (whichever you configured).
 
-### SSH Tunnel (for Dashboard)
+### Dashboard (Control UI)
 ```bash
-ssh -L 18789:127.0.0.1:18789 root@YOUR_VPS_IP
+ssh -N -L 18789:127.0.0.1:18789 root@YOUR_VPS_IP
 ```
-Then open http://localhost:18789
+Then open http://localhost:18789 and enter your gateway token (from `.env`).
+
+The gateway must have `gateway.bind: "lan"` in `openclaw.json` for Docker port mapping to work (set by default in the template). The `-N` flag keeps the tunnel open without a shell.
 
 ### CLI
 ```bash

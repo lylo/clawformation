@@ -221,10 +221,10 @@ cd /root/openclaw && git pull
 docker compose build && docker compose up -d
 ```
 
-**Access gateway:**
+**Access Control UI (dashboard):**
 ```bash
-ssh -L 18789:127.0.0.1:18789 root@YOUR_VPS_IP
-# Then open http://localhost:18789
+ssh -N -L 18789:127.0.0.1:18789 root@YOUR_VPS_IP
+# Then open http://localhost:18789 and enter gateway token
 ```
 
 ## Testing

@@ -257,14 +257,16 @@ Each of these will cause OpenClaw to write and install a new skill autonomously.
 
 ## Part 7: Access the Dashboard (Optional)
 
-The Control UI lets you see sessions, config, and health from a browser. It's bound to localhost by default (good for security), so access it through an SSH tunnel:
+The Control UI lets you see sessions, config, and health from a browser. The gateway only exposes port 18789 on `127.0.0.1`, so access it through an SSH tunnel:
 
 ```bash
-# Run this on YOUR laptop, not the VPS
-ssh -L 18789:127.0.0.1:18789 root@YOUR_VPS_IP
+# Run this on YOUR laptop, not the VPS (-N means no shell, just tunnel)
+ssh -N -L 18789:127.0.0.1:18789 root@YOUR_VPS_IP
 ```
 
-Then open http://localhost:18789 in your browser and paste the gateway token.
+Then open http://localhost:18789 in your browser and paste the gateway token (from `/root/openclaw/.env`).
+
+**Note:** The config template sets `gateway.bind: "lan"` so the gateway listens on all interfaces inside the Docker container (required for Docker port mapping). Docker still only exposes the port on the host's `127.0.0.1`, so it's not publicly accessible. The template also sets `gateway.controlUi.allowInsecureAuth: true` which skips device pairing — safe since access is gated by the SSH tunnel and gateway token.
 
 ---
 

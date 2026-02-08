@@ -18,6 +18,12 @@
       }
     }
   },
+  "gateway": {
+    "bind": "lan",
+    "controlUi": {
+      "allowInsecureAuth": true
+    }
+  },
   "channels": {
     "telegram": {
       "enabled": true,
