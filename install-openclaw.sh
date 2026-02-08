@@ -2,19 +2,23 @@
 # ============================================================================
 # OpenClaw — One-Shot Hetzner VPS Installer
 # ============================================================================
-# Run this on a FRESH Ubuntu 24.04 Hetzner VPS as root:
+# First-time setup on a FRESH Ubuntu 24.04 Hetzner VPS as root:
 #
-#   curl -fsSL https://your-url/install.sh | bash
-#   — or —
-#   scp install-openclaw.sh root@YOUR_VPS_IP:~ && ssh root@YOUR_VPS_IP 'bash install-openclaw.sh'
+#   git clone https://github.com/lylo/bunkbot.git /root/bunkbot
+#   bash /root/bunkbot/install-openclaw.sh
+#
+# To update after making changes:
+#
+#   cd /root/bunkbot && git pull
+#   bash /root/bunkbot/install-openclaw.sh
 #
 # What it does:
 #   1. Updates the system and installs dependencies
 #   2. Installs Docker
-#   3. Clones OpenClaw
+#   3. Clones OpenClaw (the software) to /root/openclaw
 #   4. Creates persistent directories
 #   5. Generates secure tokens
-#   6. Writes .env and docker-compose.yml
+#   6. Copies .env, docker-compose.yml, Dockerfile.skills, openclaw.json
 #   7. Builds the Docker image
 #   8. Starts the gateway
 #
@@ -35,7 +39,9 @@ HEARTBEAT_INTERVAL="30m"
 # Your phone number in international format — CHANGE THIS
 YOUR_PHONE_NUMBER="${YOUR_PHONE_NUMBER:-+447700900000}"
 # Primary model — change if you prefer a different Claude model
-PRIMARY_MODEL="${PRIMARY_MODEL:-anthropic/claude-sonnet-4-5-20250929}"
+PRIMARY_MODEL="${PRIMARY_MODEL:-anthropic/claude-haiku-4-5}"
+# Directory where this script (and its companion files) lives
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # --- Colours ---
 RED='\033[0;31m'
@@ -135,94 +141,12 @@ EOF
 fi
 
 # --- Step 7: Write docker-compose.yml ---
-step "Checking docker-compose.yml"
+step "Copying docker-compose.yml"
 if [ -f "$OPENCLAW_DIR/docker-compose.yml" ]; then
-    log "docker-compose.yml already exists — preserving existing configuration"
-
-    # Check if browser variables are present
-    if ! grep -q "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH" "$OPENCLAW_DIR/docker-compose.yml"; then
-        warn "Your docker-compose.yml doesn't have browser environment variables"
-        warn "Add these lines to both services after the PATH line:"
-        warn "  - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium"
-        warn "  - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium"
-        warn "  - PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright"
-        echo ""
-        read -rp "Automatically add browser variables now? (y/N) " add_browser_vars
-        if [[ "$add_browser_vars" =~ ^[Yy] ]]; then
-            cp "$OPENCLAW_DIR/docker-compose.yml" "$OPENCLAW_DIR/docker-compose.yml.backup-$(date +%Y%m%d-%H%M%S)"
-            sed -i '/PATH=.*\/sbin:\/bin/a\      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium\n      - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium\n      - PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright' "$OPENCLAW_DIR/docker-compose.yml"
-            log "Browser variables added to docker-compose.yml"
-        else
-            warn "Skipping browser variable addition — browser tool may not work"
-        fi
-    else
-        log "Browser environment variables already present"
-    fi
-else
-    log "Creating docker-compose.yml"
-    cat > "$OPENCLAW_DIR/docker-compose.yml" <<'COMPOSE'
-services:
-  openclaw-gateway:
-    image: ${OPENCLAW_IMAGE}
-    build: .
-    restart: unless-stopped
-    init: true
-    shm_size: '1gb'
-    env_file:
-      - .env
-    environment:
-      - HOME=/home/node
-      - NODE_ENV=production
-      - TERM=xterm-256color
-      - OPENCLAW_GATEWAY_BIND=${OPENCLAW_GATEWAY_BIND}
-      - OPENCLAW_GATEWAY_PORT=${OPENCLAW_GATEWAY_PORT}
-      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
-      - GOG_KEYRING_PASSWORD=${GOG_KEYRING_PASSWORD}
-      - XDG_CONFIG_HOME=${XDG_CONFIG_HOME}
-      - NPM_CONFIG_PREFIX=/home/node/.npm-global
-      - GOPATH=/home/node/go
-      - PATH=/home/node/.npm-global/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/usr/local/go/bin:/home/node/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-      - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
-      - PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright
-    volumes:
-      - openclaw_home:/home/node
-      - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
-      - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
-    ports:
-      - "127.0.0.1:${OPENCLAW_GATEWAY_PORT}:18789"
-
-  openclaw-cli:
-    image: ${OPENCLAW_IMAGE}
-    init: true
-    env_file:
-      - .env
-    environment:
-      - HOME=/home/node
-      - NODE_ENV=production
-      - TERM=xterm-256color
-      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
-      - GOG_KEYRING_PASSWORD=${GOG_KEYRING_PASSWORD}
-      - XDG_CONFIG_HOME=${XDG_CONFIG_HOME}
-      - NPM_CONFIG_PREFIX=/home/node/.npm-global
-      - GOPATH=/home/node/go
-      - PATH=/home/node/.npm-global/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/usr/local/go/bin:/home/node/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-      - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
-      - PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright
-    volumes:
-      - openclaw_home:/home/node
-      - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
-      - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
-    profiles:
-      - cli
-    entrypoint: ["node", "dist/index.js"]
-
-volumes:
-  openclaw_home:
-COMPOSE
-    log "docker-compose.yml written"
+    log "docker-compose.yml already exists — overwriting with latest template"
 fi
+cp "$SCRIPT_DIR/docker-compose.yml" "$OPENCLAW_DIR/docker-compose.yml"
+log "docker-compose.yml copied from $SCRIPT_DIR"
 
 # --- Step 8: Write initial config ---
 step "Checking openclaw.json"
@@ -230,34 +154,17 @@ if [ -f "$OPENCLAW_CONFIG/openclaw.json" ]; then
     log "openclaw.json already exists — preserving existing configuration"
     warn "To reset config, manually delete $OPENCLAW_CONFIG/openclaw.json and re-run"
 else
-    log "Creating initial openclaw.json"
-    cat > "$OPENCLAW_CONFIG/openclaw.json" <<EOF
-{
-  "agents": {
-    "defaults": {
-      "model": {
-        "primary": "${PRIMARY_MODEL}"
-      },
-      "heartbeat": {
-        "every": "${HEARTBEAT_INTERVAL}"
-      },
-      "maxConcurrent": 4,
-      "subagents": {
-        "maxConcurrent": 8
-      }
-    }
-  },
-  "channels": {
-    "whatsapp": {
-      "dmPolicy": "allowlist",
-      "allowFrom": ["${YOUR_PHONE_NUMBER}"],
-      "groupPolicy": "disabled",
-      "mediaMaxMb": 50,
-      "debounceMs": 0
-    }
-  }
-}
-EOF
+    log "Creating initial openclaw.json from template"
+    cp "$SCRIPT_DIR/openclaw.json.template" "$OPENCLAW_CONFIG/openclaw.json"
+    # Substitute user-specific values
+    jq --arg model "$PRIMARY_MODEL" \
+       --arg phone "$YOUR_PHONE_NUMBER" \
+       --arg heartbeat "$HEARTBEAT_INTERVAL" \
+       '.agents.defaults.model.primary = $model
+        | .agents.defaults.heartbeat.every = $heartbeat
+        | .channels.whatsapp.allowFrom = [$phone]' \
+       "$OPENCLAW_CONFIG/openclaw.json" > "$OPENCLAW_CONFIG/openclaw.json.tmp" \
+    && mv "$OPENCLAW_CONFIG/openclaw.json.tmp" "$OPENCLAW_CONFIG/openclaw.json"
     chown 1000:1000 "$OPENCLAW_CONFIG/openclaw.json"
     log "openclaw.json written with allowlist for $YOUR_PHONE_NUMBER"
 fi
@@ -268,78 +175,16 @@ cd "$OPENCLAW_DIR"
 docker build -t openclaw:base -f Dockerfile .
 log "Base image built"
 
-step "Creating extended Dockerfile with Homebrew, npm prefix, Go"
-cat > "$OPENCLAW_DIR/Dockerfile.skills" <<'SKILLSDOCKERFILE'
-FROM openclaw:base
-
-USER root
-
-# System deps for Homebrew, skill builds, and browser automation
-RUN apt-get update -qq && apt-get install -y -qq --no-install-recommends \
-    build-essential procps curl file git ca-certificates \
-    chromium chromium-driver \
-    libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
-    libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 \
-    libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2 \
-    libatspi2.0-0 libxshmfence1 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Go (pinned — some skills need 1.24+)
-ARG GO_VERSION=1.24.0
-RUN ARCH="$(dpkg --print-architecture)" \
-    && curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz" \
-       | tar -C /usr/local -xz \
-    && ln -sf /usr/local/go/bin/go /usr/local/bin/go \
-    && ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
-
-# Fix npm global prefix for the node user
-RUN mkdir -p /home/node/.npm-global \
-    && chown -R 1000:1000 /home/node/.npm-global
-
-# Write npmrc so the prefix is always picked up regardless of env vars
-RUN echo "prefix=/home/node/.npm-global" > /home/node/.npmrc \
-    && chown 1000:1000 /home/node/.npmrc
-
-# Also fix /usr/local/lib/node_modules to be writable by node as fallback
-RUN chown -R 1000:1000 /usr/local/lib/node_modules 2>/dev/null || true \
-    && mkdir -p /usr/local/lib/node_modules \
-    && chown -R 1000:1000 /usr/local/lib/node_modules
-
-# Install Playwright for browser automation (as node user)
-# System deps already installed above, so skip --with-deps
-USER node
-RUN npm install -g playwright@latest \
-    && npx playwright install chromium
-USER root
-
-# Homebrew: create dir, install as node user
-RUN mkdir -p /home/linuxbrew && chown -R 1000:1000 /home/linuxbrew
-
-USER node
-RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# Shims so skill installers always find brew/go even with sanitised PATH
-USER root
-RUN ln -sf /home/linuxbrew/.linuxbrew/bin/brew /usr/local/bin/brew \
-    && ln -sf /home/linuxbrew/.linuxbrew/Homebrew/Library /home/linuxbrew/.linuxbrew/Library
-
-# Create openclaw symlink for easy CLI access
-RUN ln -sf /app/openclaw.mjs /usr/local/bin/openclaw && chmod +x /usr/local/bin/openclaw
-
-# Ensure node owns everything in its home
-RUN chown -R 1000:1000 /home/node
-
-USER node
-
-ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
-ENV GOPATH=/home/node/go
-ENV PATH="/home/node/.npm-global/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/usr/local/go/bin:/home/node/go/bin:${PATH}"
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
-ENV PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright
-SKILLSDOCKERFILE
-
-log "Dockerfile.skills created"
+step "Copying Dockerfile.skills"
+if [ -f "$SCRIPT_DIR/Dockerfile.skills" ]; then
+    cp "$SCRIPT_DIR/Dockerfile.skills" "$OPENCLAW_DIR/Dockerfile.skills"
+    log "Dockerfile.skills copied from $SCRIPT_DIR"
+elif [ -f "$OPENCLAW_DIR/Dockerfile.skills" ]; then
+    warn "Dockerfile.skills not found alongside install script — using existing copy in $OPENCLAW_DIR"
+else
+    err "Dockerfile.skills not found. Place it next to install-openclaw.sh and re-run."
+    exit 1
+fi
 
 step "Building extended image (this installs Homebrew — takes a few minutes)"
 docker build -t openclaw:latest -f "$OPENCLAW_DIR/Dockerfile.skills" .

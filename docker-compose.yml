@@ -1,0 +1,59 @@
+services:
+  openclaw-gateway:
+    image: ${OPENCLAW_IMAGE}
+    build: .
+    restart: unless-stopped
+    init: true
+    shm_size: '1gb'
+    env_file:
+      - .env
+    environment:
+      - HOME=/home/node
+      - NODE_ENV=production
+      - TERM=xterm-256color
+      - OPENCLAW_GATEWAY_BIND=${OPENCLAW_GATEWAY_BIND}
+      - OPENCLAW_GATEWAY_PORT=${OPENCLAW_GATEWAY_PORT}
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+      - GOG_KEYRING_PASSWORD=${GOG_KEYRING_PASSWORD}
+      - XDG_CONFIG_HOME=${XDG_CONFIG_HOME}
+      - NPM_CONFIG_PREFIX=/home/node/.npm-global
+      - GOPATH=/home/node/go
+      - PATH=/home/node/.npm-global/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/usr/local/go/bin:/home/node/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+      - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
+      - PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright
+    volumes:
+      - openclaw_home:/home/node
+      - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
+    ports:
+      - "127.0.0.1:${OPENCLAW_GATEWAY_PORT}:18789"
+
+  openclaw-cli:
+    image: ${OPENCLAW_IMAGE}
+    init: true
+    env_file:
+      - .env
+    environment:
+      - HOME=/home/node
+      - NODE_ENV=production
+      - TERM=xterm-256color
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+      - GOG_KEYRING_PASSWORD=${GOG_KEYRING_PASSWORD}
+      - XDG_CONFIG_HOME=${XDG_CONFIG_HOME}
+      - NPM_CONFIG_PREFIX=/home/node/.npm-global
+      - GOPATH=/home/node/go
+      - PATH=/home/node/.npm-global/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/usr/local/go/bin:/home/node/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+      - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
+      - PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright
+    volumes:
+      - openclaw_home:/home/node
+      - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
+    profiles:
+      - cli
+    entrypoint: ["node", "dist/index.js"]
+
+volumes:
+  openclaw_home:
