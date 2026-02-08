@@ -64,6 +64,7 @@ RUN chown -R 1000:1000 /home/node
 
 USER node
 ENTRYPOINT ["/usr/local/bin/openclaw-entrypoint.sh"]
+CMD ["node", "openclaw.mjs", "gateway", "--allow-unconfigured"]
 
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 ENV GOPATH=/home/node/go
