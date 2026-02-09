@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # ============================================================================
-# OpenClaw — One-Shot Hetzner VPS Installer
+# OpenClaw — One-Shot VPS Installer
 # ============================================================================
-# First-time setup on a FRESH Ubuntu 24.04 Hetzner VPS as root:
+# First-time setup on a FRESH Ubuntu 24.04 VPS as root:
 #
-#   git clone https://github.com/lylo/bunkbot.git /root/bunkbot
-#   bash /root/bunkbot/install-openclaw.sh
+#   git clone https://github.com/lylo/pinkubate.git /root/pinkubate
+#   bash /root/pinkubate/setup.sh
 #
 # To update after making changes:
 #
-#   cd /root/bunkbot && git pull
-#   bash /root/bunkbot/install-openclaw.sh
+#   cd /root/pinkubate && git pull
+#   bash /root/pinkubate/setup.sh
 #
 # What it does:
 #   1. Updates the system and installs dependencies
@@ -184,7 +184,7 @@ else
 
     if [ "$ENABLE_WHATSAPP" = true ]; then
         echo ""
-        read -rp "Your phone number (international format, e.g. +44...): " phone_number
+        read -rp "Your phone number (international format, e.g. +1...): " phone_number
         JQ_FILTER="$JQ_FILTER | .channels.whatsapp.allowFrom = [\$phone] | .plugins.entries.whatsapp.enabled = true"
         JQ_ARGS+=(--arg phone "$phone_number")
     else
@@ -211,7 +211,7 @@ if [ -f "$SCRIPT_DIR/Dockerfile.skills" ]; then
 elif [ -f "$OPENCLAW_DIR/Dockerfile.skills" ]; then
     warn "Dockerfile.skills not found alongside install script — using existing copy in $OPENCLAW_DIR"
 else
-    err "Dockerfile.skills not found. Place it next to install-openclaw.sh and re-run."
+    err "Dockerfile.skills not found. Place it next to setup.sh and re-run."
     exit 1
 fi
 

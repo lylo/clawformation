@@ -1,4 +1,4 @@
-# Tailscale Setup for Hetzner VPS
+# Tailscale Setup for Your VPS
 
 Secure your VPS by making SSH only accessible via your private Tailscale network.
 
@@ -115,9 +115,9 @@ Now you can use: `ssh openclaw-tailscale`
 
 You're about to block SSH from the public internet. Make sure Tailscale works first.
 
-### Option A: Using Hetzner Cloud Firewall (Recommended)
+### Option A: Using Your Provider's Cloud Firewall (Recommended)
 
-1. **Go to Hetzner Cloud Console**
+1. **Go to your VPS provider's web console**
 2. **Firewall** → Create Firewall or edit existing
 3. **Inbound Rules:**
    - SSH (Port 22):
@@ -167,22 +167,22 @@ Enter your gateway token and you're in!
 
 ## Recovery: If You Get Locked Out
 
-### Method 1: Hetzner Console
-1. Go to Hetzner Cloud Console
-2. Click "Console" button
+### Method 1: Web Console
+1. Go to your VPS provider's web console
+2. Click the console/terminal access button
 3. Log in with password (if set)
 4. Disable Tailscale restriction or fix config
 
 ### Method 2: Rescue Mode
-1. Hetzner Console → Rescue tab
-2. Enable Rescue & Power Cycle
-3. SSH into rescue mode with provided password
+1. Use your provider's rescue/recovery mode
+2. Enable rescue mode and power cycle the server
+3. SSH into rescue mode with the provided password
 4. Mount filesystem: `mount /dev/sda1 /mnt`
 5. Fix firewall: `chroot /mnt ufw allow 22/tcp`
 6. Reboot
 
-### Method 3: Remove Firewall in Hetzner UI
-1. Hetzner Console → Firewall
+### Method 3: Remove Firewall in Provider UI
+1. Go to your provider's web console → Firewall settings
 2. Detach or delete the firewall
 3. SSH access restored
 
@@ -238,7 +238,7 @@ Host openclaw
 
 # Via public IP (fallback, if Tailscale is down)
 Host openclaw-public
-    HostName 46.225.7.149
+    HostName YOUR_VPS_PUBLIC_IP
     User root
     IdentityFile ~/.ssh/id_ed25519
 ```
@@ -265,7 +265,7 @@ tailscale ping 100.x.x.x
 ```
 
 ### Locked out after restricting SSH
-Use Hetzner console or rescue mode (see Recovery section above).
+Use your provider's web console or rescue mode (see Recovery section above).
 
 ### OpenClaw dashboard not accessible
 Check if OpenClaw is running:
@@ -281,7 +281,7 @@ docker compose logs -f openclaw-gateway
 ## Costs
 
 **Tailscale:** Free for personal use (up to 100 devices)
-**Hetzner VPS:** No additional cost for Tailscale traffic
+**VPS:** No additional cost for Tailscale traffic
 
 ---
 
@@ -299,11 +299,6 @@ docker compose logs -f openclaw-gateway
 
 1. Test Tailscale access thoroughly before restricting SSH
 2. Add SSH config entries for convenience
-3. Optionally restrict SSH via Hetzner firewall or UFW
+3. Optionally restrict SSH via your provider's firewall or UFW
 4. Access OpenClaw dashboard directly via Tailscale IP
 5. Add more devices (phone, tablet) to your Tailscale network
-
----
-
-**Last updated:** 2026-02-04
-**Tested on:** Hetzner Ubuntu 24.04 VPS

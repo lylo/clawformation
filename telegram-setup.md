@@ -49,12 +49,12 @@ BotFather will ask:
 
 **Bot name:** (shown to users)
 ```
-Bunk Bot
+My Assistant
 ```
 
 **Bot username:** (must end in "bot")
 ```
-bunk_assistant_bot
+my_assistant_bot
 ```
 
 **You'll get a token like:**
@@ -185,7 +185,7 @@ If you see errors, check:
 
 **On Telegram:**
 
-1. Search for your bot: `@bunk_assistant_bot` (your bot username)
+1. Search for your bot: `@my_assistant_bot` (your bot username)
 2. Start a chat: `/start`
 3. Send a message: `Hello!`
 
@@ -467,9 +467,3 @@ docker compose logs -f openclaw-gateway
 # Check config
 cat /root/.openclaw/openclaw.json | grep -A10 telegram
 ```
-
----
-
-**Last updated:** 2026-02-04
-**OpenClaw Version:** 2026.2.3
-**Tested on:** Hetzner Ubuntu 24.04 VPS

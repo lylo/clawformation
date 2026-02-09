@@ -1,6 +1,6 @@
-# OpenClaw on a Hetzner VPS — Simple Setup Guide
+# OpenClaw on an Ubuntu VPS — Setup Guide
 
-> **Goal:** A 24/7 personal AI assistant you message via Telegram or WhatsApp, powered by Claude, that teaches itself new skills over time. Cost: ~€4-6/month for the VPS + Anthropic API usage.
+> **Goal:** A 24/7 personal AI assistant you message via Telegram or WhatsApp, powered by Claude, that teaches itself new skills over time. Cost: A few dollars/month for the VPS (varies by provider) + Anthropic API usage.
 
 ---
 
@@ -12,7 +12,7 @@ OpenClaw is an open-source AI agent that runs on your own server. You message it
 
 ## What You Need Before Starting
 
-- A **Hetzner Cloud account** (hetzner.com)
+- A **VPS from any provider** (e.g. Hetzner, DigitalOcean, Linode, Vultr)
 - An **Anthropic API key** (console.anthropic.com → API Keys)
 - **Telegram** (create a bot via @BotFather) and/or **WhatsApp** on your phone
 - SSH on your laptop (Terminal on Mac/Linux, or PuTTY/WSL on Windows)
@@ -22,11 +22,11 @@ OpenClaw is an open-source AI agent that runs on your own server. You message it
 
 ## Part 1: Provision the VPS
 
-1. Log into Hetzner Cloud Console.
+1. Log into your VPS provider's dashboard.
 2. Create a new server:
    - **Location:** Wherever is closest to you.
    - **Image:** Ubuntu 24.04
-   - **Type:** CX22 (2 vCPU, 4 GB RAM) is plenty. Even CX11 works for light use.
+   - **Type:** 2 vCPU, 4 GB RAM is plenty. Even the smallest tier works for light use.
    - **SSH Key:** Add your public key (strongly recommended over password).
 3. Note the server's **IP address** once it's created.
 4. SSH in:
@@ -59,8 +59,8 @@ docker compose version
 Clone the deployment repo and run the installer:
 
 ```bash
-git clone https://github.com/lylo/bunkbot.git /root/bunkbot
-bash /root/bunkbot/install-openclaw.sh
+git clone https://github.com/lylo/pinkubate.git /root/pinkubate
+bash /root/pinkubate/setup.sh
 ```
 
 The installer will:
@@ -282,8 +282,8 @@ docker compose build && docker compose up -d
 
 **Update deployment config (Dockerfile, docker-compose, etc.):**
 ```bash
-cd /root/bunkbot && git pull
-bash /root/bunkbot/install-openclaw.sh
+cd /root/pinkubate && git pull
+bash /root/pinkubate/setup.sh
 ```
 
 ---
@@ -310,7 +310,7 @@ bash /root/bunkbot/install-openclaw.sh
 | List skills | `docker compose exec openclaw-gateway openclaw skills list` |
 | Edit config | `nano /root/.openclaw/openclaw.json` (then restart) |
 | Update OpenClaw | `cd /root/openclaw && git pull && docker compose build && docker compose up -d` |
-| Update deployment | `cd /root/bunkbot && git pull && bash /root/bunkbot/install-openclaw.sh` |
+| Update deployment | `cd /root/pinkubate && git pull && bash /root/pinkubate/setup.sh` |
 | Get dashboard URL | `docker compose run --rm openclaw-cli dashboard --no-open` |
 
 ---
@@ -318,7 +318,6 @@ bash /root/bunkbot/install-openclaw.sh
 ## Useful Links
 
 - **Official docs:** https://docs.openclaw.ai
-- **Hetzner-specific guide:** https://docs.openclaw.ai/platforms/hetzner
 - **WhatsApp channel:** https://docs.openclaw.ai/channels/whatsapp
 - **Signal channel:** https://docs.openclaw.ai/channels/signal
 - **Skills docs:** https://docs.openclaw.ai/tools/skills

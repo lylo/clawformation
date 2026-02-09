@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # VPS Security Hardening Script for Ubuntu 24.04
-# Run this on a fresh Hetzner VPS to secure it
+# Run this on a fresh Ubuntu 24.04 VPS to secure it
 
 # Colors for output
 RED='\033[0;31m'

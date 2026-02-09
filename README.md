@@ -1,16 +1,16 @@
 # OpenClaw Deployment Configuration
 
-Production-ready deployment system for running [OpenClaw](https://github.com/openclaw/openclaw) on a Hetzner VPS.
+Production-ready deployment system for running [OpenClaw](https://github.com/openclaw/openclaw) on an Ubuntu VPS.
 
 ## What This Is
 
 This repository contains deployment automation and configuration for OpenClaw - **not the OpenClaw source code itself**. It provides:
 
-- ✅ One-script installation for fresh Ubuntu 24.04 VPS
-- ✅ Automated Docker setup with browser automation (Chromium + Playwright)
-- ✅ Configuration templates
-- ✅ Safe re-run capability (preserves existing configs)
-- ✅ Multi-channel support (Telegram, WhatsApp)
+- One-script installation for fresh Ubuntu 24.04 VPS
+- Automated Docker setup with browser automation (Chromium + Playwright)
+- Configuration templates
+- Safe re-run capability (preserves existing configs)
+- Multi-channel support (Telegram, WhatsApp)
 
 **OpenClaw** is an autonomous AI agent platform that runs 24/7, with multi-channel support (Telegram, WhatsApp, Discord, CLI), skill-based extensibility, and persistent memory.
 
@@ -18,14 +18,14 @@ This repository contains deployment automation and configuration for OpenClaw - 
 
 ### Fresh VPS Installation
 
-1. **Spin up a Hetzner Ubuntu 24.04 VPS**
+1. **Spin up an Ubuntu 24.04 VPS** (any provider works — Hetzner, DigitalOcean, Linode, Vultr, etc.)
 
 2. **Clone this repo and run the installer:**
 
 ```bash
-git clone <YOUR_REPO_URL> /root/bunkbot
-cd /root/bunkbot
-bash install-openclaw.sh
+git clone https://github.com/lylo/pinkubate.git /root/pinkubate
+cd /root/pinkubate
+bash setup.sh
 ```
 
 3. **The script will:**
@@ -59,7 +59,7 @@ The installer will prompt you to choose a messaging channel (Telegram, WhatsApp,
 
 To override the default model, set it as an environment variable:
 ```bash
-PRIMARY_MODEL="anthropic/claude-sonnet-4-5" bash /root/bunkbot/install-openclaw.sh
+PRIMARY_MODEL="anthropic/claude-sonnet-4-5" bash /root/pinkubate/setup.sh
 ```
 
 ### After Installation
@@ -247,10 +247,10 @@ docker compose up -d
 ```
 
 ### Rebuild with Changes
-If you update `install-openclaw.sh` and want to apply changes:
+If you update `setup.sh` and want to apply changes:
 ```bash
 cd /root/openclaw
-bash /root/bunkbot/install-openclaw.sh
+bash /root/pinkubate/setup.sh
 ```
 
 Config in `/root/.openclaw/` is preserved.
@@ -258,16 +258,16 @@ Config in `/root/.openclaw/` is preserved.
 ## Files in This Repo
 
 ```
-bunkbot/
+pinkubate/
 ├── README.md                      # This file
 ├── AGENTS.md                      # Project context for AI agents
-├── install-openclaw.sh            # Main installer
+├── setup.sh                       # Main installer
 ├── Dockerfile.skills              # Extended Docker image
 ├── docker-compose.yml             # Docker Compose services
 ├── openclaw.json.template         # Config template (Telegram + WhatsApp)
 ├── sync.sh                        # Pull server config backups
 ├── secure-vps.sh                  # VPS hardening script
-├── openclaw-hetzner-guide.md      # Detailed setup guide
+├── vps-setup-guide.md             # Detailed setup guide
 ├── telegram-setup.md              # Telegram channel guide
 ├── skills-management.md           # Skills system reference
 ├── tailscale-setup.md             # Tailscale VPN setup
@@ -335,7 +335,7 @@ OpenClaw 2026.2.3+ requires `heartbeat` under `agents.defaults`, not at root:
 
 ```
 ┌─────────────────────────────────────────────┐
-│  VPS (Hetzner Ubuntu 24.04)                 │
+│  VPS (Ubuntu 24.04)                         │
 │                                              │
 │  ┌────────────────────────────────────┐     │
 │  │  Docker Container                  │     │
@@ -367,13 +367,8 @@ OpenClaw 2026.2.3+ requires `heartbeat` under `agents.defaults`, not at root:
 
 - **OpenClaw Docs**: https://github.com/openclaw/openclaw
 - **Issues**: Check install logs and `docker compose logs`
-- **Config Reference**: See `openclaw.json.template` and `AGENTS.md`
+- **Config Reference**: See `openclaw.json.template` and `vps-setup-guide.md`
 
 ## License
 
-This deployment configuration is provided as-is. OpenClaw itself is licensed separately.
-
----
-
-**Last Updated**: 2026-02-08
-**Tested On**: Hetzner Ubuntu 24.04 VPS
+MIT License. See [LICENSE](LICENSE) for details. OpenClaw itself is licensed separately.

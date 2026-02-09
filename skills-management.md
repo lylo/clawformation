@@ -84,7 +84,7 @@ Once installed and loaded, skills are automatically available. Just ask your bot
 **Examples:**
 - "Show my model usage" (uses `model-usage` skill)
 - "Summarize this article: [URL]" (uses `summarize` skill)
-- "What's the weather in Edinburgh?" (uses `weather` skill)
+- "What's the weather in New York?" (uses `weather` skill)
 
 The bot will automatically use the appropriate skill based on your request.
 
@@ -371,8 +371,3 @@ Then just:
 clawhub install weather
 ```
 
----
-
-**Last updated:** 2026-02-04
-**OpenClaw Version:** 2026.2.3
-**Tested on:** Hetzner Ubuntu 24.04 VPS

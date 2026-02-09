@@ -35,7 +35,7 @@
     },
     "whatsapp": {
       "dmPolicy": "allowlist",
-      "allowFrom": ["+447700900000"],
+      "allowFrom": ["+1234567890"],
       "groupPolicy": "disabled",
       "mediaMaxMb": 50,
       "debounceMs": 0
