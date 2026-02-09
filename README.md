@@ -23,8 +23,8 @@ This repository contains deployment automation and configuration for OpenClaw - 
 2. **Clone this repo and run the installer:**
 
 ```bash
-git clone https://github.com/lylo/pinkubate.git /root/pinkubate
-cd /root/pinkubate
+git clone https://github.com/lylo/clawformation.git /root/clawformation
+cd /root/clawformation
 bash setup.sh
 ```
 
@@ -59,7 +59,7 @@ The installer will prompt you to choose a messaging channel (Telegram, WhatsApp,
 
 To override the default model, set it as an environment variable:
 ```bash
-PRIMARY_MODEL="anthropic/claude-sonnet-4-5" bash /root/pinkubate/setup.sh
+PRIMARY_MODEL="anthropic/claude-sonnet-4-5" bash /root/clawformation/setup.sh
 ```
 
 ### After Installation
@@ -250,7 +250,7 @@ docker compose up -d
 If you update `setup.sh` and want to apply changes:
 ```bash
 cd /root/openclaw
-bash /root/pinkubate/setup.sh
+bash /root/clawformation/setup.sh
 ```
 
 Config in `/root/.openclaw/` is preserved.
@@ -258,7 +258,7 @@ Config in `/root/.openclaw/` is preserved.
 ## Files in This Repo
 
 ```
-pinkubate/
+clawformation/
 ├── README.md                      # This file
 ├── AGENTS.md                      # Project context for AI agents
 ├── setup.sh                       # Main installer

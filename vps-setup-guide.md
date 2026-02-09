@@ -59,8 +59,8 @@ docker compose version
 Clone the deployment repo and run the installer:
 
 ```bash
-git clone https://github.com/lylo/pinkubate.git /root/pinkubate
-bash /root/pinkubate/setup.sh
+git clone https://github.com/lylo/clawformation.git /root/clawformation
+bash /root/clawformation/setup.sh
 ```
 
 The installer will:
@@ -282,8 +282,8 @@ docker compose build && docker compose up -d
 
 **Update deployment config (Dockerfile, docker-compose, etc.):**
 ```bash
-cd /root/pinkubate && git pull
-bash /root/pinkubate/setup.sh
+cd /root/clawformation && git pull
+bash /root/clawformation/setup.sh
 ```
 
 ---
@@ -310,7 +310,7 @@ bash /root/pinkubate/setup.sh
 | List skills | `docker compose exec openclaw-gateway openclaw skills list` |
 | Edit config | `nano /root/.openclaw/openclaw.json` (then restart) |
 | Update OpenClaw | `cd /root/openclaw && git pull && docker compose build && docker compose up -d` |
-| Update deployment | `cd /root/pinkubate && git pull && bash /root/pinkubate/setup.sh` |
+| Update deployment | `cd /root/clawformation && git pull && bash /root/clawformation/setup.sh` |
 | Get dashboard URL | `docker compose run --rm openclaw-cli dashboard --no-open` |
 
 ---

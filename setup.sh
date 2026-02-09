@@ -4,13 +4,13 @@
 # ============================================================================
 # First-time setup on a FRESH Ubuntu 24.04 VPS as root:
 #
-#   git clone https://github.com/lylo/pinkubate.git /root/pinkubate
-#   bash /root/pinkubate/setup.sh
+#   git clone https://github.com/lylo/clawformation.git /root/clawformation
+#   bash /root/clawformation/setup.sh
 #
 # To update after making changes:
 #
-#   cd /root/pinkubate && git pull
-#   bash /root/pinkubate/setup.sh
+#   cd /root/clawformation && git pull
+#   bash /root/clawformation/setup.sh
 #
 # What it does:
 #   1. Updates the system and installs dependencies
