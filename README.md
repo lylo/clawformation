@@ -1,6 +1,6 @@
-# OpenClaw Deployment Configuration
+# Clawformation
 
-Production-ready deployment system for running [OpenClaw](https://github.com/openclaw/openclaw) on an Ubuntu VPS.
+Deploy [OpenClaw](https://github.com/openclaw/openclaw) on any Ubuntu VPS with a single script.
 
 ## What This Is
 
@@ -73,7 +73,7 @@ Config files are created at `/root/.openclaw/`:
   - `USER.md` - Your profile
   - `memory/` - Daily logs
 
-The install script **preserves existing configs** - safe to re-run for updates.
+The setup script **preserves existing configs** — safe to re-run for updates.
 
 ### Model Configuration
 
@@ -325,11 +325,13 @@ OpenClaw 2026.2.3+ requires `heartbeat` under `agents.defaults`, not at root:
 {
   "agents": {
     "defaults": {
-      "heartbeat": { "every": "30m" }  // ← Correct location
+      "heartbeat": { "every": "30m" }
     }
   }
 }
 ```
+
+Note: `heartbeat` must be under `agents.defaults`, not at the root level.
 
 ## Architecture
 
@@ -341,7 +343,7 @@ OpenClaw 2026.2.3+ requires `heartbeat` under `agents.defaults`, not at root:
 │  │  Docker Container                  │     │
 │  │                                    │     │
 │  │  OpenClaw Gateway :18789           │     │
-│  │  ├─ Claude Haiku 4.5               │     │
+│  │  ├─ Claude (configurable model)     │     │
 │  │  ├─ Browser Tool (Chromium)        │     │
 │  │  ├─ Telegram / WhatsApp Plugin     │     │
 │  │  └─ Skills                         │     │
@@ -355,13 +357,19 @@ OpenClaw 2026.2.3+ requires `heartbeat` under `agents.defaults`, not at root:
       Telegram/WhatsApp      REST API
 ```
 
-## Security Notes
+## Security
 
 - Gateway only binds to `127.0.0.1` (use SSH tunnel for remote access)
 - Secrets generated with `openssl rand -hex 32`
 - Channel allowlist prevents unauthorized access
 - All agent runtime as non-root user (node:1000)
 - Credentials stored encrypted in Docker volumes
+
+**Harden your VPS** (optional but recommended):
+```bash
+bash /root/clawformation/secure-vps.sh
+```
+This configures SSH key-only auth, UFW firewall, fail2ban, and automatic security updates. See also `tailscale-setup.md` for private VPN access.
 
 ## Support
 
